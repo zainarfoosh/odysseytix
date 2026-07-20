@@ -1,0 +1,55 @@
+name: Odyssey seat-release monitor
+
+on:
+  workflow_dispatch:
+    inputs:
+      diagnostic:
+        description: "Run diagnostic (--check) instead of the normal run"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "*/20 * * * *"   # every 20 min, all hours (UTC). GitHub may delay/skip.
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+
+      - name: Install Playwright + Chromium
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Run monitor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MENTION: ${{ vars.GH_MENTION }}
+        run: |
+          if [ "${{ github.event.inputs.diagnostic }}" = "true" ]; then
+            python monitor.py --check
+          else
+            python monitor.py
+          fi
+
+      - name: Persist state if changed
+        run: |
+          if ! git diff --quiet seen_dates.json; then
+            git config user.name  "odyssey-monitor"
+            git config user.email "actions@github.com"
+            git add seen_dates.json && git commit -m "Update seen dates" && git push
+          fi
