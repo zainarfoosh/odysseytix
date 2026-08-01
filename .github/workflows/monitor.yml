@@ -59,7 +59,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "Odyssey showtimes just opened: ${{ env.NEW_DATES }}"
-          to: "drrasha20022yahoo.com"
+          to: ${{ secrets.MAIL_TO }}
           from: Zain - Odyssey Tickets Monitor
           body: |
             New date(s) now on sale for The Odyssey (IMAX 70MM) at Regal Mall of Georgia:
