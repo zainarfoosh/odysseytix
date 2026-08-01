@@ -218,6 +218,12 @@ def cmd_run():
         print("[info] No new dates on sale.")
         return
     print(f"[ALERT] Newly on sale: {sorted(newly)}")
+    # Expose the new dates to later workflow steps (e.g. an email step) via
+    # $GITHUB_ENV, so `env.NEW_DATES` is available to them.
+    gh_env = os.environ.get("GITHUB_ENV")
+    if gh_env:
+        with open(gh_env, "a") as f:
+            f.write(f"NEW_DATES={', '.join(sorted(newly))}\n")
     if not (notify_github_issue(newly) or notify_macos(newly)):
         print("[warn] No notifier configured; printing only.", file=sys.stderr)
     save_seen(seen | newly)
