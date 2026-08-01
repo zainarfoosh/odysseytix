@@ -49,6 +49,24 @@ jobs:
             python monitor.py
           fi
 
+      - name: Email alert
+        if: ${{ env.NEW_DATES != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Odyssey showtimes just opened: ${{ env.NEW_DATES }}"
+          to: "you@example.com, friend@example.com, other@example.com"
+          from: Odyssey Monitor
+          body: |
+            New date(s) now on sale for The Odyssey (IMAX 70MM) at Regal Mall of Georgia:
+            ${{ env.NEW_DATES }}
+
+            Grab seats: https://www.fandango.com/regal-mall-of-georgia-aankx/theater-page?format=IMAX%2070MM
+
       - name: Persist state if changed
         run: |
           if ! git diff --quiet seen_dates.json; then
